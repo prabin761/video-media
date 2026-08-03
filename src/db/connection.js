@@ -4,7 +4,7 @@ const dns = require("dns"); //nodes native dns server(ip)
 dns.setServers([
     "1.1.1.1",//cloud fare
     "1.0.0.1"
-])
+]);
 
 const connect_DB = async() =>{
     try {
