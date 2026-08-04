@@ -17,24 +17,6 @@ const registerUser = asyncHandler(async (req, res) => {
   //get user details
   const { fullName, email, username, password } = req.body;
 
-  // check for images, check for avatar
-  const avatarLocalPath = req.files?.avatar?.[0]?.path;
-  const coverImageLocalPath = req.files?.coverImage?.[0]?.path;
-
-
-
-  if (!avatarLocalPath) {
-    throw new ApiError(400, "avatar figure is required");
-  }
-
-  //upload images to cloudinary, avatar(upload check on cloudinary)
-  const avatar = await uploadOnCloudinary(avatarLocalPath);
-  const coverImage = await uploadOnCloudinary(coverImageLocalPath);
-
-  if (!avatar) {
-    throw new ApiError(400, "Avatar picture is required");
-  }
-
   //validate user input - not empty
   if (
     [fullName, email, username, password].some((field) => field?.trim() === "")
@@ -49,6 +31,22 @@ const registerUser = asyncHandler(async (req, res) => {
 
   if (existedUser) {
     throw new ApiError(409, "user with username and email exists");
+  }
+
+  // check for images, check for avatar
+  const avatarLocalPath = req.files?.avatar?.[0]?.path;
+  const coverImageLocalPath = req.files?.coverImage?.[0]?.path;
+
+  if (!avatarLocalPath) {
+    throw new ApiError(400, "avatar figure is required");
+  }
+
+  //upload images to cloudinary, avatar(upload check on cloudinary)
+  const avatar = await uploadOnCloudinary(avatarLocalPath);
+  const coverImage = await uploadOnCloudinary(coverImageLocalPath);
+
+  if (!avatar) {
+    throw new ApiError(400, "Avatar picture is required");
   }
 
   const user = await User.create({
