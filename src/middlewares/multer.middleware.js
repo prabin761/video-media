@@ -1,4 +1,5 @@
 const multer = require("multer");
+const path = require("path")
 
 
 const storage = multer.diskStorage({
@@ -6,8 +7,8 @@ const storage = multer.diskStorage({
         cb(null,"./public/temp")
     },
     filename: function (req,file,cb) {
-        const uniqueSuffix = Date.now();
-        cb(null,file.fieldname + '-' + uniqueSuffix);
+        const unique = Date.now() + path.extname(file.originalname);
+        cb(null,`avatar-${unique}`);
         //saving file name with current date + original user file name
     }
 })
