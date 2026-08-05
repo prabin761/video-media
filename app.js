@@ -28,7 +28,7 @@ app.use("/api/v1/users",userRouter);
 
 //get all users
 app.get('/all', async(req,res) =>{
-  user = await User.find();
+  user = await User.find().select("-password")
   res.status(200).json({
     success: true,
     data:user
