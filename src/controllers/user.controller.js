@@ -4,6 +4,7 @@ const ApiError = require("../utils/ApiError.js");
 const ApiResponse = require("../utils/ApiResponse.js");
 const uploadOnCloudinary = require("../utils/fileUpload.js");
 const jwt = require("jsonwebtoken");
+const deleteFromCloudinary = require("../utils/deleteFromCloudinary.js");
 
 //security options for tokens in coookies
 const options = {
@@ -284,63 +285,81 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 });
 
 //update avatar
-const updateUserAvatar = asyncHandler(async(req,res) =>{
+const updateUserAvatar = asyncHandler(async (req, res) => {
   //from multer middleware get avatar
- const avatarLocalPath = req.files?.path;
+  const avatarLocalPath = req.files?.path;
 
- if(!avatarLocalPath){
-  throw new ApiError(400,"avatar file is missing");
- }
+  if (!avatarLocalPath) {
+    throw new ApiError(400, "avatar file is missing");
+  }
 
- const avatar = await uploadOnCloudinary(avatarLocalPath);
+  //uploading new avatar image
+  const avatar = await uploadOnCloudinary(avatarLocalPath);
 
- if(!avatar.url){
-  throw new ApiError(500,"Error while uploading avatar");
- }
+  if (!avatar.url) {
+    throw new ApiError(500, "Error while uploading avatar");
+  }
 
- //updating the avatar 
- const user = await User.findByIdAndUpdate(
-  req.user?._id,
-  {
-    //using $set because we want to update only avatar
-  $set:{avatar:avatar.url}
- },
-  {new:true}
- ).select("-passowrd")
+  //updating the avatar image in database
+  const user = await User.findByIdAndUpdate(
+    req.user?._id,
+    {
+      //using $set because we want to update only avatar
+      $set: {
+        avatar: {
+          url: avatar.url,
+          public_id: avatar.public_id,
+        },
+      },
+    },
+    { new: true },
+  ).select("-passowrd");
 
-    return res
-          .status(200)
-          .json(
-            new ApiResponse(200,user,"user avatar updated sucessfully")
-          )
+  //deleteing old image only after success update
+  if (user.avatar?.pubclic_id) {
+    await deleteFromCloudinary(user.avatar.pubclic_id);
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, "user avatar updated sucessfully"));
 });
 
 //update cover picture
-const updateCoverPicture = asyncHandler(async(req,res) => {
+const updateCoverPicture = asyncHandler(async (req, res) => {
   const coverImageLocalPath = req.files?.path;
 
-  if(!coverImageLocalPath){
+  if (!coverImageLocalPath) {
     throw new ApiError(400, "cover image is missing");
-  };
-   const coverImage = await uploadOnCloudinary(coverImageLocalPath);
+  }
+  const coverImage = await uploadOnCloudinary(coverImageLocalPath);
 
-   if(!coverImage.url){
-    throw new ApiError(500,"Error while uploading cover image");
-   }
+  if (!coverImage.url) {
+    throw new ApiError(500, "Error while uploading cover image");
+  }
 
-  const user = await User.findByIdAndUpdate(req.user?._id,
+  const user = await User.findByIdAndUpdate(
+    req.user?._id,
     {
-      $set:{coverImage:coverImage.url},
+      $set: {
+        coverImage: {
+          url: coverImage.url,
+          pubclic_id: coverImage.pubclic_id,
+        },
+      },
     },
-    {new:true}
-   ).select("-passowrd")
+    { new: true },
+  ).select("-passowrd");
 
-   return res
-          .status(200)
-          .json(
-            new ApiResponse(200,user,"cover image updated sucessfully")
-          )
-})
+  //deleteing old image only after success update
+  if (user.collection?.pubclic_id) {
+    await deleteFromCloudinary(user.coverImage.pubclic_id);
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, "cover image updated sucessfully"));
+});
 
 module.exports = {
   registerUser,
@@ -351,5 +370,5 @@ module.exports = {
   getCurrentUser,
   updateAccountDetails,
   updateUserAvatar,
-  updateCoverPicture
+  updateCoverPicture,
 };

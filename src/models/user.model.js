@@ -25,10 +25,12 @@ const userSchema = new mongoose.Schema(
       trim: true
     },
     avatar: {
-      type: String,//cloudinary url
+      url: String,//cloudinary url
+      pubclic_id:String
     },
     coverImage: {
-      type: String,//cloudinary url
+      url: String,//cloudinary url
+      pubclic_id:String
     },
     watchHistory : [
         {
